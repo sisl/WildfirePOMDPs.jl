@@ -29,28 +29,38 @@ function render(mdp::WildfireMDP, s::WildfireState, a::WildfireAction; kwargs...
 	return plot(pfire, pfuel, size=(600,250))
 end
 
+# ! TODO: WildfirePOMDP
+plot_fire(pomdp::POMDP, s::WildfireState, a::WildfireAction; kwargs...) = plot_fire(pomdp.mdp, s, a; kwargs...)
 function plot_fire(mdp::WildfireMDP, s::WildfireState, a::WildfireAction;
-				   max_fuel=mdp.max_fuel, use_emojis=true, emoji_size=12)
-	F = 𝕀.(s.burning) .* s.fuel
+				   max_fuel=mdp.max_fuel, use_emojis=false, emoji_size=12, pop_color="#94442d")
+	F = 𝟙.(s.burning) .* s.fuel
 	xl = (0, size(F,1)) .+ 1/2
 	yl = (0, size(F,2))	.+ 1/2
 	heatmap(F, c=MCG, aspect_ratio=1, xlims=xl, ylims=yl, clims=(0, max_fuel))
-	if !ismissing(a)
-		A = fill(NaN, mdp.dims...)
-		for aᵢ in a
-			A[aᵢ...] = 1 # water placement
-		end
-		heatmap!(A, c=:cadetblue2, clims=(0, max_fuel))
-	end
-	heatmap!(map(w->w ? eps() : NaN, mdp.walls), c=:black, clims=(0, max_fuel))
-	heatmap!(map(b->b ? eps() : NaN, s.burnt), c=MCG, clims=(0, max_fuel))
+	heatmap!(map(w->𝟙(w, eps(), NaN), mdp.walls), c=:black, clims=(0, max_fuel))
+	heatmap!(map(b->𝟙(b, eps(), NaN), s.burnt), c=MCG, clims=(0, max_fuel))
     if use_emojis
         for pop in findall(mdp.population)
             annotate!([(pop.I[1], pop.I[2], text("🏘️", color=colorant"rgba(0,0,0,0.6)", halign=:center, pointsize=emoji_size, family="Times"))])
         end
     else
-        heatmap!(map(p->p ? eps() : NaN, mdp.population), c=:lime, alpha=0.9, clims=(0, max_fuel))
+        heatmap!(map(p->𝟙(p, eps(), NaN), mdp.population), c=pop_color, alpha=0.7, clims=(0, max_fuel))
     end
+	if a.action_type != NoAction
+		A = fill(NaN, mdp.dims...)
+		for aᵢ in a.locations
+			# TODO: Observation...
+			A[aᵢ...] = 1 # water placement
+		end
+		if a.action_type == ResourceAllocation
+			action_color = :dodgerblue
+			alpha = 1
+		elseif a.action_type == AerialObservation
+			action_color = :gray
+			alpha = 0.5
+		end
+		heatmap!(A, c=action_color, alpha=alpha, clims=(0, max_fuel))
+	end
     heatmap!(fill(NaN, size(s.burnt)), c=MCG, clims=(0, max_fuel)) # ensure last plot has the correct colorbar
 	plot!(title="ignition",
 		  grid=false,
@@ -73,7 +83,7 @@ function plot_environment(env; c=CMAP_TERRAIN, title="env")
 	dims = size(env)
 	xl = (1, dims[1])
 	yl = (1, dims[2])
-	heatmap(elevation, xlims=xl, ylims=yl, c=c, aspect_ratio=1)
+	heatmap(env, xlims=xl, ylims=yl, c=c, aspect_ratio=1)
 	title!(title)
 end
 
