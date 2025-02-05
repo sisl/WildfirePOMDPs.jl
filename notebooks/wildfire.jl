@@ -1,17 +1,19 @@
 ### A Pluto.jl notebook ###
-# v0.19.32
+# v0.20.4
 
 using Markdown
 using InteractiveUtils
 
 # This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
 macro bind(def, element)
+    #! format: off
     quote
         local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
         local el = $(esc(element))
         global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
         el
     end
+    #! format: on
 end
 
 # ╔═╡ 5fad74f1-1824-4095-a6f5-536749b1ea42
@@ -31,6 +33,9 @@ end
 # ╔═╡ edef9782-3f87-4824-9fb3-513ab6f17b84
 using WildfirePOMDPs
 
+# ╔═╡ 1e4c9932-2b6a-4145-b73a-9c1ba7ac9925
+using Plots
+
 # ╔═╡ a68b3eaa-f7a8-4c66-a66c-116f899f84a2
 using Parameters
 
@@ -43,17 +48,24 @@ using MCTS
 # ╔═╡ 5500d8bf-44f8-4fce-aafb-f1783eaf1e44
 using Logging
 
+# ╔═╡ 4c4fce43-d2fe-4b4d-bf0a-64963a230120
+default(fontfamily="Computer Modern", framestyle=:box)
+
 # ╔═╡ 3aef9abf-3575-4269-b42d-3c321359349c
-mdp = WildfireMDP(
-	# dims=(32,32),
-	# dims=(50,50),
-	# dims=(100,100),
-	# num_water_drops=2,
-	# p_ignite=0.25,
-	# action_size=(2,20),
-	# p_ignite=0.25,
-	# allow_non_burning_actions=true,
-);
+begin
+	Random.seed!(0)
+	mdp = WildfireMDP(
+		# dims=(32,32),
+		# dims=(50,50),
+		# dims=(100,100),
+		# num_water_drops=20,
+		# p_ignite=0.25,
+		# resource_action_size=(2,20),
+		resource_action_size=(4,40),
+		# p_ignite=0.25,
+		# allow_non_burning_actions=true,
+	)
+end;
 
 # ╔═╡ 77c7e608-dd85-483b-bd1d-ca7d4c849957
 if mdp.dims == (10,10)
@@ -67,7 +79,7 @@ args = (ratio=1, size=(300,300), colorbar=false, ticks=false);
 
 # ╔═╡ 86010b8b-3125-401a-83b6-090f05c0fb3e
 md"""
-## POMDPS
+# POMDPs
 """
 
 # ╔═╡ 5fe68c84-bd12-4f0f-a7bd-e2c63518f556
@@ -230,7 +242,7 @@ heatmap(σb̃.fuel; args...)
 plot(heatmap(μb̃.burning, ; c=cmap, args...), heatmap(σ²b̃.burning; c=:viridis, args...), size=(600,300))
 
 # ╔═╡ 0ab988cf-8085-4776-8208-cd3f00fef624
-S = [rand(ds0) for _ in 1:up.n_samples]
+S = [rand(ds0) for _ in 1:up.n_init]
 
 # ╔═╡ cb1aebf5-2814-49f5-ba99-07cabf8515f7
 S̄ = mean(S)
@@ -370,7 +382,9 @@ hcat(
 
 # ╔═╡ 30e90504-4a9e-4925-8e36-bbe5f5ac9bd5
 begin
-	pomdp_policy = FunctionPolicy(x->rand(A[514:518]))
+	Random.seed!(0)
+	pomdp_policy = FunctionPolicy(x->rand(A[100:110]))
+	# pomdp_policy = FunctionPolicy(x->rand(A[514:518]))
 	# pomdp_policy = RandomPolicy(pomdp)
 	# pomdp_policy = FunctionPolicy(x->rand(A[501:end]))
 	h_pomdp = simulate(HistoryRecorder(max_steps=3), pomdp, pomdp_policy, up)
@@ -507,6 +521,8 @@ Logging.disable_logging(Logging.Warn) # NOTE: for colorbar warning in Plots
 # ╔═╡ Cell order:
 # ╟─5fad74f1-1824-4095-a6f5-536749b1ea42
 # ╠═edef9782-3f87-4824-9fb3-513ab6f17b84
+# ╠═1e4c9932-2b6a-4145-b73a-9c1ba7ac9925
+# ╠═4c4fce43-d2fe-4b4d-bf0a-64963a230120
 # ╠═3aef9abf-3575-4269-b42d-3c321359349c
 # ╠═77c7e608-dd85-483b-bd1d-ca7d4c849957
 # ╠═c36f6db8-8312-49cb-8961-09b2c8d4b673

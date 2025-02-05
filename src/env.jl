@@ -8,7 +8,7 @@ function generate_elevation(dims; seed=missing, use_geostats=false, rng::Abstrac
 	return Matrix(reshape(solution.reals.elevation[1], solution.domain.dims)')
 end
 
-function generate_terrain(dims; min_fuel=10, max_fuel=40, n_mixtures=10, dimscale=1, seed=missing, use_geostats=false, rng::AbstractRNG=Random.GLOBAL_RNG)
+function generate_terrain(dims; min_fuel=10, max_fuel=40, n_mixtures=10, dimscale=3, seed=missing, use_geostats=false, rng::AbstractRNG=Random.GLOBAL_RNG)
 	!ismissing(seed) && Random.seed!(seed)
 	if use_geostats
 		𝒢ₜ = CartesianGrid(dims...)
@@ -18,7 +18,7 @@ function generate_terrain(dims; min_fuel=10, max_fuel=40, n_mixtures=10, dimscal
 		terrain = Matrix(reshape(solution.reals.terrain[1], dims)')
 	else
 		mvs = Vector{MvNormal}(undef, n_mixtures)
-		center_distribution = Product([Categorical(dims[1]), Categorical(dims[2])])
+		center_distribution = Product([Distributions.Categorical(dims[1]), Distributions.Categorical(dims[2])])
 		for i in eachindex(mvs)
 			μ = rand(rng, center_distribution)
 			m = length(μ)

@@ -22,7 +22,7 @@ end
 	walls = falses(dims...)        # fire blocking walls
     population = falses(dims...)   # populated areas
 	init_fire_location = (dims[1]÷2, dims[2]÷2) # location of the initial fire
-	init_fire_distr = Product([Categorical(dims[1]), Categorical(dims[2])]) # distribution to sample initial ignition cells
+	init_fire_distr = Product([Distributions.Categorical(dims[1]), Distributions.Categorical(dims[2])]) # distribution to sample initial ignition cells
 	init_ignition_steps = 40       # time to let initial fire spread
 	resource_action_size = (2, 20) # size of the water resource drops
 	resource_actions = all_actions(dims, resource_action_size, ResourceAllocation) # all water drop actions
@@ -83,7 +83,7 @@ function POMDPs.actions(mdp::WildfireMDP, s::WildfireState) # Action−space
 			legal_actions = WildfireAction[]
 			for a in A
 				for fire in burning_cells
-					if fire ∈ a.locations
+					if fire ∈ a.locations && a ∉ legal_actions
 						push!(legal_actions, a)
 					end
 				end

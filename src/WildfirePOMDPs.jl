@@ -5,7 +5,6 @@ using Reexport
 @reexport using ParticleFilters
 @reexport using Plots
 @reexport using POMDPs
-@reexport using POMDPSimulators
 @reexport using POMDPTools
 @reexport using Random
 @reexport using Statistics
